@@ -38,16 +38,16 @@ class _PipWidgetState extends State<PipWidget> with WidgetsBindingObserver {
     super.initState();
     observer = LifecycleEventHandler(
       resumeCallBack: () async {
+        await widget.onResume?.call();
         if (widget.isEnteringHomeOnSuspending) {
           setState(() => isInPip = false);
         }
-        await widget.onResume?.call();
       },
       suspendingCallBack: () async {
+        await widget.onSuspending?.call();
         if (widget.isEnteringHomeOnSuspending) {
           setState(() => isInPip = true);
         }
-        await widget.onSuspending?.call();
       },
     );
     WidgetsBinding.instance.addObserver(observer);

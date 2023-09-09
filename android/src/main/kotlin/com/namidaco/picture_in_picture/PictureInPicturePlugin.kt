@@ -3,9 +3,6 @@ package com.namidaco.picture_in_picture
 import android.app.Activity
 import android.app.PictureInPictureParams
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import android.util.Rational
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -16,7 +13,6 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
-
 /** PictureInPicturePlugin */
 class PictureInPicturePlugin : FlutterPlugin, MethodCallHandler, Activity(), ActivityAware {
     /// The MethodChannel that will the communication between Flutter and native Android
@@ -25,7 +21,6 @@ class PictureInPicturePlugin : FlutterPlugin, MethodCallHandler, Activity(), Act
     /// when the Flutter Engine is detached from the Activity
     private lateinit var channel: MethodChannel
     private var activity: Activity? = null
-
 
     val canEnterPip: Boolean
         get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
@@ -49,31 +44,31 @@ class PictureInPicturePlugin : FlutterPlugin, MethodCallHandler, Activity(), Act
                 val width = call.argument<Int?>("width")
                 val height = call.argument<Int?>("height")
                 result.success(enterPip(width, height))
-
             }
 
             else -> result.notImplemented()
         }
     }
-    
+
     private var pipTimer: Timer? = null
 
     private fun startPipCheckTimer(durationMs: Int?): Boolean {
         pipTimer?.cancel()
         if (canEnterPip) {
-            var lastInPip = activity?.isInPictureInPictureMode;
-            pipTimer = fixedRateTimer("timer", false, 0L, durationMs?.toLong() ?: 100) {
-                val pip = activity?.isInPictureInPictureMode
-                if (pip != lastInPip) {
-                    lastInPip = pip
-                    runOnUiThread {
-                        channel.invokeMethod("isInPip", mapOf("isInsidePip" to pip))
+            var lastInPip = activity?.isInPictureInPictureMode
+            pipTimer =
+                fixedRateTimer("timer", false, 0L, durationMs?.toLong() ?: 100) {
+                    val pip = activity?.isInPictureInPictureMode
+                    if (pip != lastInPip) {
+                        lastInPip = pip
+                        runOnUiThread {
+                            channel.invokeMethod("isInPip", mapOf("isInsidePip" to pip))
+                        }
                     }
                 }
-            }
-            return true;
+            return true
         } else {
-            return false;
+            return false
         }
     }
 
@@ -94,7 +89,7 @@ class PictureInPicturePlugin : FlutterPlugin, MethodCallHandler, Activity(), Act
                 false
             }
         } else {
-            return false;
+            return false
         }
     }
 
