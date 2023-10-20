@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'picture_in_picture_method_channel.dart';
@@ -35,8 +36,12 @@ abstract class PictureInPicturePlatform extends PlatformInterface {
     throw UnimplementedError('isPiPSupported() has not been implemented.');
   }
 
-  Future<bool> enterPip({int? width, int? height}) {
+  Future<bool> enterPip({int? width, int? height, Rect? rectHint}) {
     throw UnimplementedError('enterPip() has not been implemented.');
+  }
+
+  Future<bool> setAspectRatio({int? width, int? height}) {
+    throw UnimplementedError('setAspectRatio() has not been implemented.');
   }
 
   set onPipChanged(Function(bool isInPip) onPipChangedFunction) {
@@ -44,7 +49,6 @@ abstract class PictureInPicturePlatform extends PlatformInterface {
   }
 
   set defaultPipStatusCheckTimerDuration(Duration duration) {
-    throw UnimplementedError(
-        'defaultPipStatusCheckTimerDuration setter is no available.');
+    throw UnimplementedError('defaultPipStatusCheckTimerDuration setter is no available.');
   }
 }

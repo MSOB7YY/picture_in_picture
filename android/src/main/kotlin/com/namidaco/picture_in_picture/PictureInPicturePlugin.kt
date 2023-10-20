@@ -2,8 +2,10 @@ package com.namidaco.picture_in_picture
 
 import android.app.Activity
 import android.app.PictureInPictureParams
+import android.graphics.Rect
 import android.os.Build
 import android.util.Rational
+import androidx.annotation.RequiresApi
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -40,10 +42,32 @@ class PictureInPicturePlugin : FlutterPlugin, MethodCallHandler, Activity(), Act
                 result.success(startPipCheckTimer(millis))
             }
 
+            "setAspectRatio" -> {
+                if (canEnterPip) {
+                    val width = call.argument<Int?>("width")
+                    val height = call.argument<Int?>("height")
+                    if (width != null && height != null) {
+                        val params = PictureInPictureParams.Builder()
+                        val ratio = Rational(width, height)
+                        params.setAspectRatio(ratio);
+                        activity?.setPictureInPictureParams(params.build());
+                        result.success(true)
+                    } else {
+                        result.success(false)
+                    }
+                } else {
+                    result.success(false)
+                }
+            }
+
             "enterPip" -> {
                 val width = call.argument<Int?>("width")
                 val height = call.argument<Int?>("height")
-                result.success(enterPip(width, height))
+                val left = call.argument<Int?>("left")
+                val top = call.argument<Int?>("top")
+                val right = call.argument<Int?>("right")
+                val bottom = call.argument<Int?>("bottom")
+                result.success(enterPip(width, height, left, top, right, bottom))
             }
 
             else -> result.notImplemented()
@@ -57,7 +81,7 @@ class PictureInPicturePlugin : FlutterPlugin, MethodCallHandler, Activity(), Act
         if (canEnterPip) {
             var lastInPip = activity?.isInPictureInPictureMode
             pipTimer =
-                fixedRateTimer("timer", false, 0L, durationMs?.toLong() ?: 100) {
+                fixedRateTimer("timer", false, 0L, durationMs?.toLong() ?: 20) {
                     val pip = activity?.isInPictureInPictureMode
                     if (pip != lastInPip) {
                         lastInPip = pip
@@ -72,7 +96,14 @@ class PictureInPicturePlugin : FlutterPlugin, MethodCallHandler, Activity(), Act
         }
     }
 
-    private fun enterPip(width: Int?, height: Int?): Boolean {
+    private fun enterPip(
+        width: Int?,
+        height: Int?,
+        left: Int?,
+        top: Int?,
+        right: Int?,
+        bottom: Int?
+    ): Boolean {
         if (canEnterPip) {
             return try {
                 val params1 = PictureInPictureParams.Builder()
@@ -80,9 +111,9 @@ class PictureInPicturePlugin : FlutterPlugin, MethodCallHandler, Activity(), Act
                 if (width != null && height != null) {
                     val ratio = Rational(width, height)
                     val params2 = params1.setAspectRatio(ratio)
-                    activity?.enterPictureInPictureMode(params2.build())
+                    buildPipWithRect(params2, left, top, right, bottom)
                 } else {
-                    activity?.enterPictureInPictureMode(params1.build())
+                    buildPipWithRect(params1, left, top, right, bottom)
                 }
                 true
             } catch (ignore: Exception) {
@@ -91,6 +122,25 @@ class PictureInPicturePlugin : FlutterPlugin, MethodCallHandler, Activity(), Act
         } else {
             return false
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun buildPipWithRect(
+        builder: PictureInPictureParams.Builder,
+        left: Int?,
+        top: Int?,
+        right: Int?,
+        bottom: Int?
+    ) {
+        var rect: Rect? = null
+        if (left != null && top != null && right != null && bottom != null) {
+            rect = Rect(left, top, right, bottom);
+            activity?.enterPictureInPictureMode(builder.setSourceRectHint(rect).build());
+
+        } else {
+            activity?.enterPictureInPictureMode(builder.build());
+        }
+
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {

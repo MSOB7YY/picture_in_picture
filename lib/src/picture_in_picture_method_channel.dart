@@ -44,8 +44,7 @@ class MethodChannelPictureInPicture extends PictureInPicturePlatform {
 
   @override
   Future<String> getPlatformVersion() async {
-    final version =
-        await methodChannel.invokeMethod<String?>('getPlatformVersion');
+    final version = await methodChannel.invokeMethod<String?>('getPlatformVersion');
     return version ?? '';
   }
 
@@ -62,10 +61,34 @@ class MethodChannelPictureInPicture extends PictureInPicturePlatform {
   }
 
   @override
-  Future<bool> enterPip({int? width, int? height}) async {
+  Future<bool> enterPip({int? width, int? height, Rect? rectHint}) async {
+    final parameters = <String, int?>{
+      'width': width,
+      'height': height,
+    };
+    if (rectHint != null) {
+      parameters.addAll({
+        'left': rectHint.left.round(),
+        'top': rectHint.top.round(),
+        'right': rectHint.right.round(),
+        'bottom': rectHint.bottom.round(),
+      });
+    }
     final didEnter = await methodChannel.invokeMethod<bool?>(
       'enterPip',
-      {'width': width, 'height': height},
+      parameters,
+    );
+    return didEnter ?? false;
+  }
+
+  @override
+  Future<bool> setAspectRatio({int? width, int? height}) async {
+    final didEnter = await methodChannel.invokeMethod<bool?>(
+      'setAspectRatio',
+      {
+        'width': width,
+        'height': height,
+      },
     );
     return didEnter ?? false;
   }
